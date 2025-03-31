@@ -94,6 +94,9 @@ else:
     for idx, (event, success_loss, failure_loss) in enumerate(st.session_state.checks):
         cols = st.columns(col_widths)
         cols[0].markdown(f"🔼🔽 {event}")
+        success_loss = cols[0].text_input(f"成功時のSAN減少 ({idx+1})", success_loss, key=f"s_{idx}")
+        failure_loss = cols[0].text_input(f"失敗時のSAN減少 ({idx+1})", failure_loss, key=f"f_{idx}")
+        st.session_state.checks[idx] = (event, success_loss, failure_loss)
         for col in cols[1:]:
             col.markdown("...")
 
@@ -101,9 +104,13 @@ else:
         st.session_state.checks.append(("新しいイベント", "0", "1D4"))
         st.rerun()
 
+    if st.button("ルート分岐追加"):
+        st.session_state.checks.append("branch")
+        st.rerun()
+
     if st.button("シミュレーション実行"):
         results = []
-        checks_data = [(success_loss, failure_loss) for _, success_loss, failure_loss in st.session_state.checks]
+        checks_data = [(success_loss, failure_loss) for _, success_loss, failure_loss in st.session_state.checks if isinstance(_, str)]
         for san in initial_san_values:
             breakdown, avg_rem, var_rem = simulate_scenario(san, checks_data)
             results.append({
