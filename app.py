@@ -83,7 +83,7 @@ if 'checks' not in st.session_state:
 if not st.session_state.agreed:
     show_terms()
 else:
-    st.title("SANチェック チェッカー")
+    st.title("🕵️ SANチェック チェッカー")
 
     initial_san_values = list(range(30, 85, 5))
     columns = ["イベント"] + [str(san) for san in initial_san_values]
@@ -116,7 +116,7 @@ else:
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
                 if "branch" not in check:
-                    row[check["event"]] = f"平均残りSAN: {avg_san_progress[idx]:.1f}\n SANロスト率: {breakdown[idx]:.1f}%"
+                    row[check["event"]] = f"平均SAN: {avg_san_progress[idx]:.1f}\n突破率: {breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
             row["平均残SAN"] = f"{avg_rem:.1f}"
             result_rows.append(row)
