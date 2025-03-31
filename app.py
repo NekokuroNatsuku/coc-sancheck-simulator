@@ -28,7 +28,7 @@ def show_terms():
     """)
     if st.button("同意する / Agree"):
         st.session_state.agreed = True
-        st.experimental_rerun()
+        st.rerun()
 
 # ダイスロール関数（例：1D6）
 def roll(dice):
@@ -123,15 +123,15 @@ else:
         with col1:
             if st.button("⬆️", key=f"up_{idx}"):
                 move_up(idx)
-                st.experimental_rerun()
+                st.rerun()
         with col2:
             if st.button("⬇️", key=f"down_{idx}"):
                 move_down(idx)
-                st.experimental_rerun()
+                st.rerun()
         with col3:
             if st.button(f"削除", key=f"del_{idx}"):
                 remove_check(idx)
-                st.experimental_rerun()
+                st.rerun()
 
     col_add, col_branch = st.sidebar.columns(2)
     with col_add:
