@@ -5,7 +5,8 @@
 ## 🚀 使い方 (Gitpodで簡単起動)
 
 以下のリンクをクリックすると、ブラウザで即座にアプリを利用できます。
-[👉 Gitpodで起動]https://gitpod.io/#https://github.com/NekokuroNatsuku/coc-sancheck-simulator
+[👉 Gitpodで起動]
+https://gitpod.io/#https://github.com/NekokuroNatsuku/coc-sancheck-simulator
 
 
 ## 📜 ライセンス
