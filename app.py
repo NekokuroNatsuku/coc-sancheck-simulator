@@ -87,7 +87,7 @@ if 'checks' not in st.session_state:
 if not st.session_state.agreed:
     show_terms()
 else:
-    st.title("SANチェック チェッカー")
+    st.title("🕵️ SANチェック チェッカー")
 
     for idx, check in enumerate(st.session_state.checks):
         cols = st.columns([3, 1, 1, 1, 1])
@@ -119,7 +119,10 @@ else:
 
         for san in initial_san_values:
             breakdown, avg_san_progress, avg_final_san = simulate_scenario(san, st.session_state.checks)
+            
+            row = {}
             row["初期SAN"] = f"{san}"
+
             for idx, check in enumerate(st.session_state.checks):
                 row[check["event"]] = f"平均残りSAN値:\n{avg_san_progress[idx]:.1f}\nSANロスト率:\n{breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
