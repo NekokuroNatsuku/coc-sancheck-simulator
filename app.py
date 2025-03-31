@@ -135,4 +135,3 @@ else:
         st.dataframe(df.style.apply(highlight, axis=1), use_container_width=True)
 
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
-"""
