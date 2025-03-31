@@ -76,7 +76,7 @@ def simulate_scenario(initial_san, checks, runs=1000):
 if 'agreed' not in st.session_state:
     st.session_state.agreed = False
 if 'checks' not in st.session_state:
-    st.session_state.checks = [("ゾンビに会う", "0", "1D3")]
+    st.session_state.checks = [{"event": "ゾンビに会う", "success": "0", "failure": "1D3"}]
 
 if not st.session_state.agreed:
     show_terms()
@@ -91,26 +91,27 @@ else:
     for col, title in zip(header_cols, columns):
         col.markdown(f"### {title}")
 
-    for idx, (event, success_loss, failure_loss) in enumerate(st.session_state.checks):
+    for idx, check in enumerate(st.session_state.checks):
         cols = st.columns(col_widths)
-        cols[0].markdown(f"🔼🔽 {event}")
-        success_loss = cols[0].text_input(f"成功時のSAN減少 ({idx+1})", success_loss, key=f"s_{idx}")
-        failure_loss = cols[0].text_input(f"失敗時のSAN減少 ({idx+1})", failure_loss, key=f"f_{idx}")
-        st.session_state.checks[idx] = (event, success_loss, failure_loss)
+        event_name = cols[0].text_input(f"イベント名 ({idx+1})", check["event"], key=f"event_{idx}")
+        success_loss = cols[0].text_input(f"成功時のSAN減少 ({idx+1})", check["success"], key=f"s_{idx}")
+        failure_loss = cols[0].text_input(f"失敗時のSAN減少 ({idx+1})", check["failure"], key=f"f_{idx}")
+        st.session_state.checks[idx] = {"event": event_name, "success": success_loss, "failure": failure_loss}
         for col in cols[1:]:
             col.markdown("...")
 
     if st.button("SANチェック追加"):
-        st.session_state.checks.append(("新しいイベント", "0", "1D4"))
+        st.session_state.checks.append({"event": "新しいイベント", "success": "0", "failure": "1D4"})
         st.rerun()
 
     if st.button("ルート分岐追加"):
-        st.session_state.checks.append("branch")
+        branch_count = 2  # default分岐数
+        st.session_state.checks.append({"event": f"ルート分岐({branch_count})", "branch": [{"event": f"分岐{i+1}", "success": "0", "failure": "1D4"} for i in range(branch_count)]})
         st.rerun()
 
     if st.button("シミュレーション実行"):
+        checks_data = [(check["success"], check["failure"]) for check in st.session_state.checks if "branch" not in check]
         results = []
-        checks_data = [(success_loss, failure_loss) for _, success_loss, failure_loss in st.session_state.checks if isinstance(_, str)]
         for san in initial_san_values:
             breakdown, avg_rem, var_rem = simulate_scenario(san, checks_data)
             results.append({
@@ -126,3 +127,4 @@ else:
         df = pd.DataFrame(results)
         st.dataframe(df, use_container_width=True)
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
+
