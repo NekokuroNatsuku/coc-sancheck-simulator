@@ -1,4 +1,4 @@
-# Streamlit UI (イベントの上下入れ替え・削除追加版)
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -84,40 +84,24 @@ if not st.session_state.agreed:
 else:
     st.title("🕵️ SANチェック チェッカー")
 
-    initial_san_values = list(range(30, 85, 5))
-    columns = ["イベント"] + [str(san) for san in initial_san_values]
-
-    col_widths = [2] + [1 for _ in initial_san_values]
-    header_cols = st.columns(col_widths)
-    for col, title in zip(header_cols, columns):
-        col.markdown(f"### {title}")
-
     for idx, check in enumerate(st.session_state.checks):
-        cols = st.columns(col_widths)
+        cols = st.columns([3, 1, 1, 1, 1])
 
-        with cols[0]:
-            st.markdown(f"**イベント#{idx+1}**")
-            event_name = st.text_input(f"イベント名 ({idx+1})", check["event"], key=f"event_{idx}")
-            success_loss = st.text_input(f"成功時のSAN減少 ({idx+1})", check["success"], key=f"s_{idx}")
-            failure_loss = st.text_input(f"失敗時のSAN減少 ({idx+1})", check["failure"], key=f"f_{idx}")
-            
-            btn_cols = st.columns(3)
-            with btn_cols[0]:
-                if st.button("⬆️", key=f"up_{idx}") and idx > 0:
-                    st.session_state.checks[idx-1], st.session_state.checks[idx] = \
-                        st.session_state.checks[idx], st.session_state.checks[idx-1]
-                    st.rerun()
-            with btn_cols[1]:
-                if st.button("⬇️", key=f"down_{idx}") and idx < len(st.session_state.checks)-1:
-                    st.session_state.checks[idx+1], st.session_state.checks[idx] = \
-                        st.session_state.checks[idx], st.session_state.checks[idx+1]
-                    st.rerun()
-            with btn_cols[2]:
-                if st.button("削除", key=f"del_{idx}"):
-                    st.session_state.checks.pop(idx)
-                    st.rerun()
+        event_name = cols[0].text_input("イベント名", check["event"], key=f"event_{idx}")
+        success_loss = cols[1].text_input("成功時減少", check["success"], key=f"s_{idx}")
+        failure_loss = cols[2].text_input("失敗時減少", check["failure"], key=f"f_{idx}")
+        
+        check.update({"event": event_name, "success": success_loss, "failure": failure_loss})
 
-            check.update({"event": event_name, "success": success_loss, "failure": failure_loss})
+        if cols[3].button("⬆️", key=f"up_{idx}") and idx > 0:
+            st.session_state.checks[idx-1], st.session_state.checks[idx] = st.session_state.checks[idx], st.session_state.checks[idx-1]
+            st.rerun()
+        if cols[4].button("⬇️", key=f"down_{idx}") and idx < len(st.session_state.checks)-1:
+            st.session_state.checks[idx+1], st.session_state.checks[idx] = st.session_state.checks[idx], st.session_state.checks[idx+1]
+            st.rerun()
+        if cols[4].button("削除", key=f"del_{idx}"):
+            st.session_state.checks.pop(idx)
+            st.rerun()
 
     if st.button("SANチェック追加"):
         st.session_state.checks.append({"event": "新しいイベント", "success": "0", "failure": "1D4"})
@@ -125,12 +109,13 @@ else:
 
     st.markdown("---")
     if st.button("シミュレーション実行"):
+        initial_san_values = list(range(30, 85, 5))
         result_rows = []
         for san in initial_san_values:
             breakdown, avg_san_progress, avg_rem = simulate_scenario(san, st.session_state.checks)
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
-                row[check["event"]] = f"平均SAN: {avg_san_progress[idx]:.1f}\n突破率: {breakdown[idx]:.1f}%"
+                row[check["event"]] = f"平均残りSAN値: {avg_san_progress[idx]:.1f}\nSANロスト率: {breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
             row["平均残SAN"] = f"{avg_rem:.1f}"
             result_rows.append(row)
@@ -142,5 +127,4 @@ else:
             return ['background-color: #dddddd; color: black;' if row.name == '突破率' else '' for _ in row]
 
         st.dataframe(df.style.apply(highlight, axis=1), use_container_width=True)
-
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
