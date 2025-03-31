@@ -1,4 +1,3 @@
-
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -9,7 +8,7 @@ st.set_page_config(layout="wide")
 # 利用規約表示用の関数
 def show_terms():
     st.title("📜 利用規約 / Terms of Use")
-    st.write("""
+    st.write(\\"\\"\\"
     本アプリケーションはクトゥルフ神話TRPGのキーパリング補助を目的としたシミュレーターツールです。
 
     - 本アプリで得た情報は、ご自身のキーパリングのための参考情報としてのみご使用ください。
@@ -27,14 +26,14 @@ def show_terms():
     - The developer assumes no responsibility for any troubles arising from the use of this application.
 
     Please use the application only if you agree to the above terms.
-    """)
+    \\"\\"\\")
     if st.button("同意する / Agree"):
         st.session_state.agreed = True
         st.rerun()
 
 # ダイスロール関数
 def roll(dice):
-    match = re.match(r'(\d+)D(\d+)', dice.upper())
+    match = re.match(r'(\\\\d+)D(\\\\d+)', dice.upper())
     if match:
         num, sides = map(int, match.groups())
         return np.sum(np.random.randint(1, sides+1, num))
@@ -49,29 +48,29 @@ def san_check(current_san, success_loss, failure_loss, success_rate=0.5):
         loss = roll(failure_loss)
     return current_san - loss
 
-# シナリオシミュレーション関数
+# シナリオシミュレーション関数（要望に沿った修正版）
 def simulate_scenario(initial_san, checks, runs=1000):
     breakdown = np.zeros(len(checks) + 1)
     san_progress = np.zeros(len(checks))
-    remaining_san = []
+    san_counts = np.zeros(len(checks))
 
     for _ in range(runs):
         san = initial_san
         for idx, check in enumerate(checks):
             success_loss, failure_loss = check["success"], check["failure"]
             san = san_check(san, success_loss, failure_loss)
-            san_progress[idx] += san
-            if san <= 0:
+            if san > 0:
+                san_progress[idx] += san
+                san_counts[idx] += 1
+            else:
                 breakdown[idx] += 1
                 break
         else:
             breakdown[-1] += 1
-            remaining_san.append(san)
 
-    avg_remaining = np.mean(remaining_san) if remaining_san else 0
-    avg_san_progress = san_progress / runs
-
-    return breakdown / runs * 100, avg_san_progress, avg_remaining
+    avg_san_progress = np.divide(san_progress, san_counts, out=np.zeros_like(san_progress), where=san_counts!=0)
+    breakdown_percentage = breakdown / runs * 100
+    return breakdown_percentage, avg_san_progress
 
 # UI初期化
 if 'agreed' not in st.session_state:
@@ -82,7 +81,7 @@ if 'checks' not in st.session_state:
 if not st.session_state.agreed:
     show_terms()
 else:
-    st.title("SANチェック チェッカー")
+    st.title("🕵️ SANチェック チェッカー")
 
     for idx, check in enumerate(st.session_state.checks):
         cols = st.columns([3, 1, 1, 1, 1])
@@ -112,12 +111,11 @@ else:
         initial_san_values = list(range(30, 85, 5))
         result_rows = []
         for san in initial_san_values:
-            breakdown, avg_san_progress, avg_rem = simulate_scenario(san, st.session_state.checks)
+            breakdown, avg_san_progress = simulate_scenario(san, st.session_state.checks)
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
-                row[check["event"]] = f"平均残りSAN値: {avg_san_progress[idx]:.1f}\nSANロスト率: {breakdown[idx]:.1f}%"
+                row[check["event"]] = f"平均残りSAN値:\\n{avg_san_progress[idx]:.1f}\\nSANロスト率:\\n{breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
-            row["平均残SAN"] = f"{avg_rem:.1f}"
             result_rows.append(row)
 
         df = pd.DataFrame(result_rows).set_index("初期SAN").T
