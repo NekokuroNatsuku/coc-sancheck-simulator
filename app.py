@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ st.set_page_config(layout="wide")
 # 利用規約表示用の関数
 def show_terms():
     st.title("📜 利用規約 / Terms of Use")
-    st.write(\\"\\"\\"
+    st.write(\"\"\"
     本アプリケーションはクトゥルフ神話TRPGのキーパリング補助を目的としたシミュレーターツールです。
 
     - 本アプリで得た情報は、ご自身のキーパリングのための参考情報としてのみご使用ください。
@@ -26,14 +27,14 @@ def show_terms():
     - The developer assumes no responsibility for any troubles arising from the use of this application.
 
     Please use the application only if you agree to the above terms.
-    \\"\\"\\")
+    \"\"\")
     if st.button("同意する / Agree"):
         st.session_state.agreed = True
         st.rerun()
 
 # ダイスロール関数
 def roll(dice):
-    match = re.match(r'(\\\\d+)D(\\\\d+)', dice.upper())
+    match = re.match(r'(\\d+)D(\\d+)', dice.upper())
     if match:
         num, sides = map(int, match.groups())
         return np.sum(np.random.randint(1, sides+1, num))
@@ -114,7 +115,7 @@ else:
             breakdown, avg_san_progress = simulate_scenario(san, st.session_state.checks)
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
-                row[check["event"]] = f"平均残りSAN値:\\n{avg_san_progress[idx]:.1f}\\nSANロスト率:\\n{breakdown[idx]:.1f}%"
+                row[check["event"]] = f"平均残りSAN値:\n{avg_san_progress[idx]:.1f}\nSANロスト率:\n{breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
             result_rows.append(row)
 
