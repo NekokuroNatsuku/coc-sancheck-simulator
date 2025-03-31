@@ -31,10 +31,9 @@ def show_terms():
         st.session_state.agreed = True
         st.rerun()
 
-# 安全なダイスロール関数（修正版）
 def roll(dice):
     dice = dice.strip().upper()
-    match = re.fullmatch(r'(\d+)D(\d+)', dice)
+    match = re.fullmatch(r'(\\d+)D(\\d+)', dice)
     if match:
         num, sides = map(int, match.groups())
         return np.sum(np.random.randint(1, sides + 1, num))
@@ -45,7 +44,6 @@ def roll(dice):
             st.error(f"無効なダイス表記です: {dice}")
             return 0
 
-# SANチェック関数
 def san_check(current_san, success_loss, failure_loss, success_rate=0.5):
     if np.random.rand() < success_rate:
         loss = roll(success_loss)
@@ -53,9 +51,8 @@ def san_check(current_san, success_loss, failure_loss, success_rate=0.5):
         loss = roll(failure_loss)
     return current_san - loss
 
-# シナリオシミュレーション関数（修正版）
 def simulate_scenario(initial_san, checks, runs=1000):
-    breakdown = np.zeros(len(checks) + 1)
+    breakdown = np.zeros(len(checks))
     san_progress = np.zeros(len(checks))
     san_counts = np.zeros(len(checks))
     final_remaining_san = []
@@ -72,13 +69,10 @@ def simulate_scenario(initial_san, checks, runs=1000):
                 breakdown[idx] += 1
                 break
         else:
-            breakdown[-1] += 1
             final_remaining_san.append(san)
 
-    avg_san_progress = np.divide(san_progress, san_counts, 
-                                 out=np.zeros_like(san_progress), 
-                                 where=san_counts!=0)
-    breakdown_percentage = breakdown / runs * 100
+    avg_san_progress = np.divide(san_progress, san_counts, out=np.zeros_like(san_progress), where=san_counts!=0)
+    breakdown_percentage = np.append(breakdown, len(final_remaining_san)) / runs * 100
     avg_final_san = np.mean(final_remaining_san) if final_remaining_san else 0
 
     return breakdown_percentage, avg_san_progress, avg_final_san
@@ -126,7 +120,7 @@ else:
             breakdown, avg_san_progress, avg_final_san = simulate_scenario(san, st.session_state.checks)
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
-                row[check["event"]] = f"平均残りSAN値:\n{avg_san_progress[idx]:.1f}\nSANロスト率:\n{breakdown[idx]:.1f}%"
+                row[check["event"]] = f"平均残りSAN値:\\n{avg_san_progress[idx]:.1f}\\nSANロスト率:\\n{breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
             row["シナリオ終了時平均残りSAN値"] = f"{avg_final_san:.1f}"
             result_rows.append(row)
@@ -140,3 +134,4 @@ else:
         st.dataframe(df.style.apply(highlight, axis=1), use_container_width=True)
 
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
+"""
