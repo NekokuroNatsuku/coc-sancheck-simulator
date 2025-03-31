@@ -34,12 +34,18 @@ def show_terms():
 
 # ダイスロール関数
 def roll(dice):
-    match = re.match(r'(\\d+)D(\\d+)', dice.upper())
+    dice = dice.strip().upper()
+    match = re.fullmatch(r'(\d+)D(\d+)', dice)
     if match:
         num, sides = map(int, match.groups())
-        return np.sum(np.random.randint(1, sides+1, num))
+        return np.sum(np.random.randint(1, sides + 1, num))
     else:
-        return int(dice)
+        # ダイス形式でない場合は数値変換を安全に行う
+        try:
+            return int(dice)
+        except ValueError:
+            st.error(f"無効なダイス表記です: {dice}")
+            return 0
 
 # SANチェック関数
 def san_check(current_san, success_loss, failure_loss, success_rate=0.5):
