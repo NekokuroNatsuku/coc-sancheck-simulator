@@ -56,9 +56,9 @@ def simulate_scenario(initial_san, checks, runs=1000):
     for _ in range(runs):
         san = initial_san
         for idx, check in enumerate(checks):
-            if check == "branch":
+            if isinstance(check, dict) and check.get("branch"):
                 continue
-            success_loss, failure_loss = check
+            success_loss, failure_loss = check["success"], check["failure"]
             san = san_check(san, success_loss, failure_loss)
             if san <= 0:
                 breakdown[idx] += 1
@@ -93,12 +93,22 @@ else:
 
     for idx, check in enumerate(st.session_state.checks):
         cols = st.columns(col_widths)
-        event_name = cols[0].text_input(f"イベント名 ({idx+1})", check["event"], key=f"event_{idx}")
-        success_loss = cols[0].text_input(f"成功時のSAN減少 ({idx+1})", check["success"], key=f"s_{idx}")
-        failure_loss = cols[0].text_input(f"失敗時のSAN減少 ({idx+1})", check["failure"], key=f"f_{idx}")
-        st.session_state.checks[idx] = {"event": event_name, "success": success_loss, "failure": failure_loss}
-        for col in cols[1:]:
-            col.markdown("...")
+
+        if isinstance(check, dict) and check.get("branch"):
+            cols[0].markdown("--- 以下ルート分岐 ---")
+            branches = check["branch"]
+            branch_cols = st.columns(len(branches))
+            for b_idx, branch in enumerate(branches):
+                with branch_cols[b_idx]:
+                    branch_event = st.text_input(f"分岐名 ({idx+1}-{b_idx+1})", branch["event"], key=f"branch_event_{idx}_{b_idx}")
+                    branch_success = st.text_input(f"成功時SAN減少 ({idx+1}-{b_idx+1})", branch["success"], key=f"branch_success_{idx}_{b_idx}")
+                    branch_failure = st.text_input(f"失敗時SAN減少 ({idx+1}-{b_idx+1})", branch["failure"], key=f"branch_failure_{idx}_{b_idx}")
+                    branch.update({"event": branch_event, "success": branch_success, "failure": branch_failure})
+        else:
+            event_name = cols[0].text_input(f"イベント名 ({idx+1})", check["event"], key=f"event_{idx}")
+            success_loss = cols[0].text_input(f"成功時のSAN減少 ({idx+1})", check["success"], key=f"s_{idx}")
+            failure_loss = cols[0].text_input(f"失敗時のSAN減少 ({idx+1})", check["failure"], key=f"f_{idx}")
+            check.update({"event": event_name, "success": success_loss, "failure": failure_loss})
 
     if st.button("SANチェック追加"):
         st.session_state.checks.append({"event": "新しいイベント", "success": "0", "failure": "1D4"})
@@ -106,25 +116,11 @@ else:
 
     if st.button("ルート分岐追加"):
         branch_count = 2  # default分岐数
-        st.session_state.checks.append({"event": f"ルート分岐({branch_count})", "branch": [{"event": f"分岐{i+1}", "success": "0", "failure": "1D4"} for i in range(branch_count)]})
+        branches = [{"event": f"分岐{i+1}", "success": "0", "failure": "1D4"} for i in range(branch_count)]
+        st.session_state.checks.append({"event": "ルート分岐", "branch": branches})
         st.rerun()
 
+    st.markdown("---")
     if st.button("シミュレーション実行"):
-        checks_data = [(check["success"], check["failure"]) for check in st.session_state.checks if "branch" not in check]
-        results = []
-        for san in initial_san_values:
-            breakdown, avg_rem, var_rem = simulate_scenario(san, checks_data)
-            results.append({
-                "初期SAN値": san,
-                **{f"#{idx+1}脱落率(%)": f"{breakdown[idx]:.1f}" for idx in range(len(checks_data))},
-                "突破率(%)": f"{breakdown[-1]:.1f}",
-                "平均残SAN": f"{avg_rem:.1f}",
-                "残SAN分散": f"{var_rem:.1f}"
-            })
-
-        st.markdown("---")
         st.header("📊 シミュレーション結果")
-        df = pd.DataFrame(results)
-        st.dataframe(df, use_container_width=True)
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
-
