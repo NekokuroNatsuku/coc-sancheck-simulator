@@ -70,10 +70,9 @@ def simulate_scenario(initial_san, checks, runs=1000):
             remaining_san.append(san)
 
     avg_remaining = np.mean(remaining_san) if remaining_san else 0
-    var_remaining = np.var(remaining_san) if remaining_san else 0
     avg_san_progress = san_progress / runs
 
-    return breakdown / runs * 100, avg_san_progress, avg_remaining, var_remaining
+    return breakdown / runs * 100, avg_san_progress, avg_remaining
 
 # UI初期化
 if 'agreed' not in st.session_state:
@@ -111,18 +110,23 @@ else:
 
     st.markdown("---")
     if st.button("シミュレーション実行"):
-        data = {"イベント": [check["event"] for check in st.session_state.checks if "branch" not in check] + ["突破率(%)", "平均残SAN", "残SAN分散"]}
+        result_rows = []
         for san in initial_san_values:
-            breakdown, avg_san_progress, avg_rem, var_rem = simulate_scenario(san, st.session_state.checks)
-            data[str(san)] = list(avg_san_progress) + [breakdown[-1], avg_rem, var_rem]
+            breakdown, avg_san_progress, avg_rem = simulate_scenario(san, st.session_state.checks)
+            row = {"初期SAN": san}
+            for idx, check in enumerate(st.session_state.checks):
+                if "branch" not in check:
+                    row[check["event"]] = f"平均SAN: {avg_san_progress[idx]:.1f}\n突破率: {breakdown[idx]:.1f}%"
+            row["突破率"] = f"{breakdown[-1]:.1f}%"
+            row["平均残SAN"] = f"{avg_rem:.1f}"
+            result_rows.append(row)
 
+        df = pd.DataFrame(result_rows).set_index("初期SAN").T
         st.header("📊 シミュレーション結果")
-        df = pd.DataFrame(data)
-        df = df.set_index("イベント")
 
-        def highlight_breakthrough(row):
-            return ['background-color: #dddddd' if row.name == '突破率(%)' else '' for _ in row]
+        def highlight(row):
+            return ['background-color: #dddddd; color: black;' if row.name == '突破率' else '' for _ in row]
 
-        st.dataframe(df.style.apply(highlight_breakthrough, axis=1), use_container_width=True)
+        st.dataframe(df.style.apply(highlight, axis=1), use_container_width=True)
 
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
