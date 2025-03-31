@@ -109,7 +109,7 @@ else:
             st.rerun()
 
     if st.button("SANチェック追加"):
-        st.session_state.checks.append({"event": "新しいイベント", "success": "0", "failure": "1D4"})
+        st.session_state.checks.append({"event": f"イベント #{len(st.session_state.checks) + 1}", "success": "0", "failure": "1D4"})
         st.rerun()
 
     st.markdown("---")
