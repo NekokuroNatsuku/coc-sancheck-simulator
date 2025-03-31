@@ -115,12 +115,19 @@ else:
         st.rerun()
 
     if st.button("ルート分岐追加"):
-        branch_count = 2  # default分岐数
+        branch_count = 2
         branches = [{"event": f"分岐{i+1}", "success": "0", "failure": "1D4"} for i in range(branch_count)]
         st.session_state.checks.append({"event": "ルート分岐", "branch": branches})
         st.rerun()
 
     st.markdown("---")
     if st.button("シミュレーション実行"):
+        results = {"イベント": [check["event"] for check in st.session_state.checks if "branch" not in check] + ["突破率(%)", "平均残SAN", "残SAN分散"]}
+        for san in initial_san_values:
+            breakdown, avg_rem, var_rem = simulate_scenario(san, st.session_state.checks)
+            results[str(san)] = list(breakdown[:-1]) + [breakdown[-1], avg_rem, var_rem]
+
         st.header("📊 シミュレーション結果")
+        df = pd.DataFrame(results)
+        st.dataframe(df.set_index("イベント"), use_container_width=True)
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
