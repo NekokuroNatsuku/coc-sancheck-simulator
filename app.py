@@ -5,10 +5,11 @@ import re
 
 st.set_page_config(layout="wide")
 
+
 # 利用規約表示用の関数
 def show_terms():
     st.title("📜 利用規約 / Terms of Use")
-    st.write(\"\"\"
+    st.write("""
     本アプリケーションはクトゥルフ神話TRPGのキーパリング補助を目的としたシミュレーターツールです。
 
     - 本アプリで得た情報は、ご自身のキーパリングのための参考情報としてのみご使用ください。
@@ -26,7 +27,7 @@ def show_terms():
     - The developer assumes no responsibility for any troubles arising from the use of this application.
 
     Please use the application only if you agree to the above terms.
-    \"\"\")
+    """)
     if st.button("同意する / Agree"):
         st.session_state.agreed = True
         st.rerun()
