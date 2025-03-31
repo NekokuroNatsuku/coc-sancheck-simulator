@@ -1,4 +1,3 @@
-
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -32,7 +31,7 @@ def show_terms():
         st.session_state.agreed = True
         st.rerun()
 
-# ダイスロール関数
+# 安全なダイスロール関数（修正版）
 def roll(dice):
     dice = dice.strip().upper()
     match = re.fullmatch(r'(\d+)D(\d+)', dice)
@@ -40,7 +39,6 @@ def roll(dice):
         num, sides = map(int, match.groups())
         return np.sum(np.random.randint(1, sides + 1, num))
     else:
-        # ダイス形式でない場合は数値変換を安全に行う
         try:
             return int(dice)
         except ValueError:
@@ -55,11 +53,12 @@ def san_check(current_san, success_loss, failure_loss, success_rate=0.5):
         loss = roll(failure_loss)
     return current_san - loss
 
-# シナリオシミュレーション関数（要望に沿った修正版）
+# シナリオシミュレーション関数（修正版）
 def simulate_scenario(initial_san, checks, runs=1000):
     breakdown = np.zeros(len(checks) + 1)
     san_progress = np.zeros(len(checks))
     san_counts = np.zeros(len(checks))
+    final_remaining_san = []
 
     for _ in range(runs):
         san = initial_san
@@ -74,10 +73,15 @@ def simulate_scenario(initial_san, checks, runs=1000):
                 break
         else:
             breakdown[-1] += 1
+            final_remaining_san.append(san)
 
-    avg_san_progress = np.divide(san_progress, san_counts, out=np.zeros_like(san_progress), where=san_counts!=0)
+    avg_san_progress = np.divide(san_progress, san_counts, 
+                                 out=np.zeros_like(san_progress), 
+                                 where=san_counts!=0)
     breakdown_percentage = breakdown / runs * 100
-    return breakdown_percentage, avg_san_progress
+    avg_final_san = np.mean(final_remaining_san) if final_remaining_san else 0
+
+    return breakdown_percentage, avg_san_progress, avg_final_san
 
 # UI初期化
 if 'agreed' not in st.session_state:
@@ -96,7 +100,7 @@ else:
         event_name = cols[0].text_input("イベント名", check["event"], key=f"event_{idx}")
         success_loss = cols[1].text_input("成功時減少", check["success"], key=f"s_{idx}")
         failure_loss = cols[2].text_input("失敗時減少", check["failure"], key=f"f_{idx}")
-        
+
         check.update({"event": event_name, "success": success_loss, "failure": failure_loss})
 
         if cols[3].button("⬆️", key=f"up_{idx}") and idx > 0:
@@ -117,12 +121,14 @@ else:
     if st.button("シミュレーション実行"):
         initial_san_values = list(range(30, 85, 5))
         result_rows = []
+
         for san in initial_san_values:
-            breakdown, avg_san_progress = simulate_scenario(san, st.session_state.checks)
+            breakdown, avg_san_progress, avg_final_san = simulate_scenario(san, st.session_state.checks)
             row = {"初期SAN": san}
             for idx, check in enumerate(st.session_state.checks):
                 row[check["event"]] = f"平均残りSAN値:\n{avg_san_progress[idx]:.1f}\nSANロスト率:\n{breakdown[idx]:.1f}%"
             row["突破率"] = f"{breakdown[-1]:.1f}%"
+            row["シナリオ終了時平均残りSAN値"] = f"{avg_final_san:.1f}"
             result_rows.append(row)
 
         df = pd.DataFrame(result_rows).set_index("初期SAN").T
@@ -132,4 +138,5 @@ else:
             return ['background-color: #dddddd; color: black;' if row.name == '突破率' else '' for _ in row]
 
         st.dataframe(df.style.apply(highlight, axis=1), use_container_width=True)
+
         st.info("⚠️ 本結果はキーパリングの参考情報です。SNSなど不特定多数の目に触れる場所への公開は利用規約通り禁止となっています。")
