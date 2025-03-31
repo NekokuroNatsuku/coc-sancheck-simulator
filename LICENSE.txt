@@ -1,0 +1,13 @@
+Copyright © NekokuroNatsuku. All rights reserved.
+
+【日本語版】
+本ソースコードは自由に利用、改変、再配布、商用利用が可能です。ただし、再配布および改変版の公開時には、以下の条件を必ず守ることとします。
+- アプリケーション起動時に表示される利用規約およびその同意プロセスを削除または無効化することを禁止します。
+- 改変または再配布する場合、本ライセンス全文を必ず添付してください。
+本ソフトウェアを利用したことで生じる損害やトラブルに関して、開発者は一切の責任を負いません。
+
+【English Version】
+This source code can be freely used, modified, redistributed, and used for commercial purposes. However, when redistributing or publishing modified versions, you must strictly comply with the following conditions:
+- It is prohibited to remove or disable the Terms of Use and the corresponding agreement process displayed upon application launch.
+- When modifying or redistributing, you must include the full text of this license.
+The developer assumes no responsibility for any damages or troubles arising from the use of this software.
