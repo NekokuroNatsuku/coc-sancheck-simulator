@@ -92,7 +92,7 @@ if 'checks' not in st.session_state:
 if not st.session_state.agreed:
     show_terms()
 else:
-    st.title("🕵️ SANチェック チェッカー")
+    st.title("🎲 SANチェック チェッカー 🎲")
 
     for idx, check in enumerate(st.session_state.checks):
         cols = st.columns([3, 1, 1, 1, 1])
