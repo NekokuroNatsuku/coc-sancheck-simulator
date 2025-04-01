@@ -33,11 +33,16 @@ def show_terms():
         st.rerun()
 
 def roll(dice):
-    dice = dice.strip().upper()
-    match = re.fullmatch(r'(\d+)D(\d+)', dice)
+    dice = dice.strip().upper().replace(' ', '')
+
+    # 正規表現で "nDm±x" の形式を抽出
+    match = re.fullmatch(r'(\d+)D(\d+)([+-]\d+)?', dice)
     if match:
-        num, sides = map(int, match.groups())
-        return np.sum(np.random.randint(1, sides + 1, num))
+        num, sides, modifier = match.groups()
+        total = np.sum(np.random.randint(1, int(sides) + 1, int(num)))
+        if modifier:
+            total += int(modifier)
+        return total
     else:
         try:
             return int(dice)
